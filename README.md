@@ -1,2 +1,2 @@
 # LearnCode
-Pendu
+Pendu Code while i was learning Python

@@ -63,7 +63,7 @@ if not na(syminfo.target_price_date) and na(syminfo.target_price_date[1])
     drawTarget(low52W, "52W Low", currLine, currentPrice, YearFromNow, 0, supportResistanceColor)
 
     // Ajouter un tooltip pour les prévisions
-    nameLabel = label.new(bar_index, currentPrice, "⬤", color = color.new(#2962ff, 100), style = label.style_label_center, textcolor = color.new(#2962ff, 0),
+    nameLabel = label.new(bar_index, currentPrice, ".", color = color.new(#2962ff, 100), style = label.style_label_center, textcolor = color.new(#2962ff, 0),
       tooltip = str.format("The analysts offering 1 year price forecasts for {0} have a maximum estimate and a minimum estimate for this stock.", syminfo.ticker))
 
 // Si aucun niveau cible n'est affiché, afficher un avertissement

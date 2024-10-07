@@ -25,9 +25,6 @@ deletePastDrawings() =>
 calcColor(price, comparedTo, transp = 0) => 
     color.new(price >= comparedTo ? posColorInput : negColorInput, transp)
 
-// Variables globales pour Buy Price (déclaration initiale)
-var float buyPrice20 = na  // Retrait de la variable 'buyPrice50'
-
 // Drawing Function for Targets
 drawTarget(price, labelText, currLine, basePrice, YearFromNow, transp=0, lineColor=color.blue) =>
     priceChange = changePercentString(price, basePrice)
@@ -35,38 +32,35 @@ drawTarget(price, labelText, currLine, basePrice, YearFromNow, transp=0, lineCol
     l = line.new(time, basePrice, YearFromNow, price, color = lineColor, xloc = xloc.bar_time, style = line.style_dotted)
     linefill.new(currLine, l, price > basePrice ? posColorInput : negColorInput)
 
-// Variables pour la gestion de l'affichage
+// Variables globales pour la gestion de l'affichage
+var float buyPrice20 = na
 var targetShown = false
 var float currentPrice = na 
 
-// Get the current price
-if not na(syminfo.target_price_date) and na(syminfo.target_price_date[1])
-    targetShown := true
-    currentPrice := close  // Assigner le prix actuel
+// Get the current price and update dynamically on every bar
+currentPrice := close
 
-    // Calculer 'YearFromNow' seulement lors de l'initialisation
-    YearFromNow = syminfo.target_price_date + timeframe.in_seconds("12M") * 1000
+// Calculate dynamic Buy Price (-20%) level based on current price
+buyPrice20 := currentPrice * 0.80
 
+// Draw the support and resistance levels on the 52-week range
+if not na(currentPrice)
     // Supprimer les dessins précédents
     deletePastDrawings()
     
+    YearFromNow = time + timeframe.in_seconds("12M") * 1000
     currLine = line.new(time, currentPrice, YearFromNow, currentPrice, xloc.bar_time, color = color.blue, style = line.style_dotted)
-
-    // Calculer le "Buy Price" à -20% du prix actuel
-    buyPrice20 := currentPrice * 0.80  // 20% de baisse par rapport au prix actuel
-
-    // Ajouter des labels et des lignes pour le niveau -20% avec une transparence accrue
+    
+    // Draw Buy Price -20% level
     drawTarget(buyPrice20, "BP -20%", currLine, currentPrice, YearFromNow, transparencyInput)
-
-    // Dessiner les niveaux de support et de résistance sur 52 semaines
+    
+    // Draw 52W High and Low levels
     drawTarget(high52W, "52W High", currLine, currentPrice, YearFromNow, 0, supportResistanceColor)
     drawTarget(low52W, "52W Low", currLine, currentPrice, YearFromNow, 0, supportResistanceColor)
+    
+    targetShown := true
 
-    // Ajouter un tooltip pour les prévisions
-    nameLabel = label.new(bar_index, currentPrice, ".", color = color.new(#2962ff, 100), style = label.style_label_center, textcolor = color.new(#2962ff, 0),
-      tooltip = str.format("The analysts offering 1 year price forecasts for {0} have a maximum estimate and a minimum estimate for this stock.", syminfo.ticker))
-
-// Si aucun niveau cible n'est affiché, afficher un avertissement
+// If no target is displayed, show a warning table
 if barstate.islast and not targetShown 
     t = table.new(position.top_right, 1, 1, chart.fg_color)
     warningText = "No analyst predictions found."
@@ -74,11 +68,12 @@ if barstate.islast and not targetShown
         warningText += "\nIf there are any new predictions for this symbol, they should appear once the market opens."
     t.cell(0, 0, warningText, text_color = chart.bg_color)
 
-// Afficher les niveaux de support et de résistance sur 52 semaines dans l'échelle des prix
+// Plot the 52W support and resistance levels on the price scale
 plot(high52W, "52W High", color = supportResistanceColor, display = display.price_scale, linewidth=2)
 plot(low52W,  "52W Low",  color = supportResistanceColor, display = display.price_scale, linewidth=2)
 
-// Afficher le niveau de Buy Price -20% sur l'échelle des prix
+// Plot the dynamically calculated Buy Price -20% level on the price scale
 plot(buyPrice20, title="BP -20%", color = calcColor(buyPrice20, currentPrice, transparencyInput), display = display.price_scale, linewidth=2)
 
 //@FREEZRX
+
